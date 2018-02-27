@@ -1,0 +1,4 @@
+modbus-tk
+rows
+xlrd
+xlwt
