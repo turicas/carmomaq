@@ -22,7 +22,7 @@ class CarmoMaq10:
     ADDR_START_ROAST = 49998
     ADDR_PID_REFERENCE = 55556
 
-    def __init__(self, host, port):
+    def __init__(self, host='192.168.0.10', port=502):
         self.host = host
         self.port = port
 
