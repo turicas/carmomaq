@@ -158,6 +158,15 @@ class CarmoMaq10:
         assert isinstance(position, (int, float)) and 0 <= position <= 100
         self._write_word(self.ADDR_SERVO_POSITION, int(position))
 
+    @property
+    def pid_reference(self):
+        value = self._read_bools(self.ADDR_PID_REFERENCE, 1)[0]
+
+        if value is False:
+            return 'bean'
+        elif value is True:
+            return 'fire'
+
     def set_pid_reference(self, reference):
         # TODO: test
         # TODO: add property to get current value
@@ -165,9 +174,9 @@ class CarmoMaq10:
             raise ValueError("'reference' must be 'bean' or 'fire'")
 
         if reference == 'bean':
-            self._write_bool(self.ADDR_PID_REFERENCE, 0)
+            self._write_bool(self.ADDR_PID_REFERENCE, False)
         elif reference == 'fire':
-            self._write_bool(self.ADDR_PID_REFERENCE, 1)
+            self._write_bool(self.ADDR_PID_REFERENCE, True)
 
     @property
     def pid_parameters(self):
