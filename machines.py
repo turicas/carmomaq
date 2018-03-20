@@ -5,6 +5,16 @@ import modbus_tk.modbus_tcp as modbus_tcp
 class CarmoMaq10:
 
     # TODO: refactor toggles to properties
+    TIME_BEAN_ENTRANCE_PISTON = 6
+    TIME_BEAN_EXIT_PISTON = 9
+    TIME_COOLER_EXIST_PISTON = 9.5
+    TIME_BEAN_ENTRANCE_PISTON = 6
+    ADDR_READ_BEAN_ENTRANCE = 16005
+    ADDR_READ_BEAN_EXIT = 16007
+    ADDR_READ_COOLER_EXIT = 16008
+    ADDR_WRITE_BEAN_ENTRANCE = 49983
+    ADDR_WRITE_BEAN_EXIT = 49982
+    ADDR_WRITE_COOLER_EXIT = 49981
     ADDR_ALARM = 28110
     ADDR_BURNER = 49995
     ADDR_CYLINDER = 49991
@@ -95,6 +105,48 @@ class CarmoMaq10:
 
         assert status in (True, False)
         self._write_bool(address, 1 if status else 0)
+
+    @property
+    def bean_entrance(self):
+        return self._get_status(self.ADDR_READ_BEAN_ENTRANCE)
+
+    def open_bean_entrance(self):
+        assert not any([self.bean_exit, self.cooler_exit])
+        assert not self.bean_entrance
+        self._set_status(self.ADDR_WRITE_BEAN_ENTRANCE, True)
+
+    def close_bean_entrance(self):
+        assert all([not self.bean_exit, not self.cooler_exit])
+        assert self.bean_entrance
+        self._set_status(self.ADDR_WRITE_BEAN_ENTRANCE, False)
+
+    @property
+    def bean_exit(self):
+        return self._get_status(self.ADDR_READ_BEAN_EXIT)
+
+    def open_bean_exit(self):
+        assert not any([self.bean_entrance, self.cooler_exit])
+        assert not self.bean_exit
+        self._set_status(self.ADDR_WRITE_BEAN_EXIT, True)
+
+    def close_bean_exit(self):
+        assert all([not self.bean_entrance, not self.cooler_exit])
+        assert self.bean_exit
+        self._set_status(self.ADDR_WRITE_BEAN_EXIT, False)
+
+    @property
+    def cooler_exit(self):
+        return self._get_status(self.ADDR_READ_COOLER_EXIT)
+
+    def open_cooler_exit(self):
+        assert not any([self.bean_entrance, self.bean_exit])
+        assert not self.cooler_exit
+        self._set_status(self.ADDR_WRITE_COOLER_EXIT, True)
+
+    def close_cooler_exit(self):
+        assert all([not self.bean_entrance, not self.bean_exit])
+        assert self.cooler_exit
+        self._set_status(self.ADDR_WRITE_COOLER_EXIT, False)
 
     def set_alarm(self, temperature):
         # TODO: add property to get current value
