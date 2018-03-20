@@ -20,6 +20,21 @@ def load_setup(filename, interval=15):
     return setup
 
 
+def max_temp(filename):
+    data = rows.utils.import_from_uri(filename, default_encoding='utf8')
+
+    last_temp = 9999999999
+    turning_point = False  # reversed turning point
+    for row in reversed(data):
+        temp = row.temp_bean
+        if not turning_point and temp > last_temp and row.roast_time > 30:
+            turning_point = True
+        elif turning_point and temp < last_temp:
+            return last_temp
+
+        last_temp = temp
+
+
 def pretty_seconds(seconds):
     pretty = str(datetime.timedelta(seconds=seconds))
     if len(pretty) == 7:  # missing a '0' to be fixed length
