@@ -1,4 +1,6 @@
-﻿import modbus_tk.defines as cst
+﻿import time
+
+import modbus_tk.defines as cst
 import modbus_tk.modbus_tcp as modbus_tcp
 
 
@@ -308,3 +310,164 @@ class CarmoMaq10:
         """Close modbus connection"""
 
         self._master.close()
+
+
+class FakeMachine:
+
+    automatic = True
+    TIME_BEAN_ENTRANCE_PISTON = 0
+    TIME_BEAN_EXIT_PISTON = 0
+    TIME_COOLER_EXIST_PISTON = 0
+    TIME_BEAN_ENTRANCE_PISTON = 0
+
+    def __init__(self, *args, **kwargs):
+        self._bean_entrance = False
+        self._bean_exit = False
+        self._burner = False
+        self._cooler = False
+        self._cooler_exit = False
+        self._cylinder = False
+        self._d_value = 0.1
+        self._i_value = 0.1
+        self._mixer = False
+        self._mode = 'manual'
+        self._p_value = 0.1
+        self._pid_reference = 120
+        self._running = False
+        self._servo_position = 10
+        self._setpoint = 150
+        self._start_time = None
+
+    def connect(self, *args, **kwargs):
+        pass
+
+    @property
+    def bean_entrance(self):
+        return self._bean_entrance
+
+    def open_bean_entrance(self):
+        self._bean_entrance = False
+
+    def close_bean_entrance(self):
+        self._bean_entrance = True
+
+    @property
+    def bean_exit(self):
+        return self._bean_exit
+
+    def open_bean_exit(self):
+        self._bean_exit = False
+
+    def close_bean_exit(self):
+        self._bean_exit = True
+
+    @property
+    def cooler_exit(self):
+        return self._cooler_exit
+
+    def open_cooler_exit(self):
+        self._cooler_exit = False
+
+    def close_cooler_exit(self):
+        self._cooler_exit = True
+
+    def set_alarm(self, *args, **kwargs):
+        pass
+
+    def set_servo_position(self, position):
+        self._servo_position = position
+
+    @property
+    def pid_reference(self):
+        return self._pid_reference
+
+    def set_pid_reference(self, reference):
+        self._pid_reference = reference
+
+    @property
+    def pid_parameters(self):
+        return (self._p_value, self._i_value, self._d_value)
+
+    def set_pid_parameters(self, p_value, i_value, d_value):
+        self._p_value = p_value
+        self._i_value = i_value
+        self._d_value = d_value
+
+    @property
+    def mode(self):
+        return self._mode
+
+    def set_mode(self, mode):
+        self._mode = mode
+
+    def start_roast(self):
+        self._running = True
+        self._start_time = time.time()
+
+    def stop_roast(self):
+        self._running = False
+
+    def restart_roast(self):
+        self.stop_roast()
+        self.start_roast()
+
+    def set_setpoint(self, temperature):
+        self._setpoint = temperature
+
+    @property
+    def mixer(self):
+        return self._mixer
+
+    def set_mixer(self, status):
+        self._mixer = status
+
+    @property
+    def cooler(self):
+        return self._cooler
+
+    def set_cooler(self, status):
+        self._cooler = status
+
+    @property
+    def burner(self):
+        return self._burner
+
+    def set_burner(self, status):
+        self._burner = status
+
+    @property
+    def cylinder(self):
+        return self._cylinder
+
+    def set_cylinder(self, status):
+        self._cylinder = status
+
+    def clear_recipe(self):
+        pass
+
+    @property
+    def data(self):
+        now = time.time()
+        duration = now - self._start_time
+        temp_fire = 493 + (1.5 * duration)
+        if duration < 60:
+            multiplier = -8
+        else:
+            multiplier = 1
+        temp_air = 314 + (multiplier * 0.1 * duration)
+        temp_bean = 143 + (multiplier * 0.2 * duration)
+        return {
+            'temp_bean': int(temp_bean),
+            'temp_air': int(temp_air),
+            'temp_fire': int(temp_fire),
+            'temp_goal': self._setpoint,
+            'roast_time': int(duration),
+            'temp_cooler': 50,
+            'servo_position': int(self._servo_position),
+            'powered': True,
+            'burner': self._burner,
+            'roasting': self._running,
+        }
+
+    def close(self):
+        pass
