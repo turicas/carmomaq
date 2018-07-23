@@ -10,6 +10,7 @@ import time
 import rows
 import rows.utils
 
+import controllers
 import machines
 import settings
 import utils
@@ -147,25 +148,10 @@ if not args.auto:
 
 else:
     print('MODO AUTOMÁTICO! Deixa comigo :)')
-
-    if 'temperature' in control_type:
-        print(
-            f'Alterando PID para seguir: {control_type}... ',
-            end='',
-            flush=True,
-        )
-        roaster.set_pid_reference(control_type.split('-')[0])
-        print('feito!')
-    elif control_type == 'servo-position':
-        print('Reprodução será através do servo motor.')
+    controller = controllers.get_controller(control_type)(roaster, setup)
+    controller.before_start()
 
     initial = setup['00:00:00']
-    roaster.set_alarm(initial.temp_bean)
-    if control_type == 'bean-temperature':
-        roaster.set_setpoint(initial.temp_bean)
-    elif control_type == 'fire-temperature':
-        roaster.set_setpoint(initial.temp_fire)
-    roaster.set_servo_position(setup['00:00:00'].servo_position)
     print(f'Initial temperatures from setup - BEAN: {initial.temp_bean}, '
           f'AIR:  {initial.temp_air}, '
           f'FIRE: {initial.temp_fire}')
@@ -214,22 +200,7 @@ else:
     roaster.set_burner(True)
     roaster.open_bean_entrance()  # found it! o/
 
-    if control_type == 'servo-position':
-        print(
-            'Alterando modo de torra para manual (não receita)... ',
-            end='',
-            flush=True,
-        )
-        roaster.set_mode('manual')
-        print('feito!')
-    else:
-        print(
-            'Alterando modo de torra para receita... ',
-            end='',
-            flush=True,
-        )
-        roaster.set_mode('recipe')
-        print('feito!')
+    controller.after_start()
 
     print('Iniciando torra... ', end='', flush=True)
     roaster.restart_roast()
@@ -278,24 +249,7 @@ with open(csv_filename, mode='w', encoding='utf8') as fobj:
                 turning_point_temp = current_bean_temperature
 
             if args.auto:
-                # Set next temperature goal
-                next_time = utils.pretty_seconds(seconds + 1)
-                row = setup.get(next_time)
-                if row:
-                    if control_type == 'servo-position':
-                        roaster.set_mode('manual')
-                        roaster.set_servo_position(row.servo_position)
-
-                    elif control_type == 'bean-temperature':
-                        if passed_turning_point:
-                            roaster.set_mode('recipe')
-                            roaster.set_pid_reference(control_type.split('-')[0])
-                            roaster.set_setpoint(row.temp_bean)
-
-                    elif control_type == 'fire-temperature':
-                        roaster.set_mode('recipe')
-                        roaster.set_pid_reference(control_type.split('-')[0])
-                        roaster.set_setpoint(row.temp_fire)
+                controller.step(seconds, passed_turning_point)  # Set next temperature goal
 
                 if passed_turning_point:
                     delta_temperature = last_setup_temperature - current_bean_temperature

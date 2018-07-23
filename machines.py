@@ -448,7 +448,10 @@ class FakeMachine:
     @property
     def data(self):
         now = time.time()
-        duration = now - self._start_time
+        if not self._start_time:
+            duration = 0
+        else:
+            duration = now - self._start_time
         temp_fire = 493 + (1.5 * duration)
         if duration < 60:
             multiplier = -8
