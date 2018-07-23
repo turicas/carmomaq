@@ -31,6 +31,7 @@ class CarmoMaq10:
     ADDR_SETPOINT = 8003
     ADDR_START_ROAST = 49998
     ADDR_PID_REFERENCE = 55556
+    automatic = True
 
     def __init__(self, host='192.168.0.10', port=502):
         self.host = host
@@ -219,6 +220,10 @@ class CarmoMaq10:
 
         self._write_bool(self.ADDR_START_ROAST, 0)
         self._write_bool(self.ADDR_START_ROAST, 1)
+
+    def restart_roast(self):
+        self.stop_roast()
+        self.start_roast()
 
     def set_setpoint(self, temperature):
         # TODO: add property to get current value
