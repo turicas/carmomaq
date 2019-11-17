@@ -23,10 +23,13 @@ class Controller:
 
 class ServoPositionController(Controller):
 
+    variable = "servo_position"
+    seconds_ahead = 1
+
     def before_start(self):
         self.log('Reprodução será através do servo motor.')
         initial = self.setup['00:00:00']
-        self.roaster.set_servo_position(initial.servo_position)
+        self.roaster.set_servo_position(getattr(initial, self.variable))
 
     def after_start(self):
         self.log('Alterando modo de torra para manual (não receita)... ',
@@ -35,16 +38,14 @@ class ServoPositionController(Controller):
         self.log('feito!')
 
     def step(self, seconds, passed_turning_point):
-        next_time = utils.pretty_seconds(seconds + 1)
-        row = self.setup.get(next_time)
-        if not row:  # TODO: if roast is not finished, calculate a proper temp
-            return
-
+        row = utils.get_last_setup_for(self.setup, seconds + self.seconds_ahead, self.variable)
         self.roaster.set_mode('manual')
-        self.roaster.set_servo_position(row.servo_position)
+        self.roaster.set_servo_position(getattr(row, self.variable))
 
 
 class TemperatureController(Controller):
+
+    seconds_ahead = 1
 
     def before_start(self):
         if not getattr(self, 'variable', None):
@@ -75,11 +76,7 @@ class BeanTemperatureController(TemperatureController):
     variable = 'temp_bean'
 
     def step(self, seconds, passed_turning_point):
-        next_time = utils.pretty_seconds(seconds + 1)
-        row = self.setup.get(next_time)
-        if not row:  # TODO: if roast is not finished, calculate a proper temp
-            return
-
+        row = utils.get_last_setup_for(self.setup, seconds + self.seconds_ahead, self.variable)
         self.roaster.set_mode('recipe')
         self.roaster.set_pid_reference(self.control_type)
         if passed_turning_point:
@@ -90,13 +87,10 @@ class FireTemperatureController(TemperatureController):
 
     control_type = 'fire'
     variable = 'temp_fire'
+    seconds_ahead = 20
 
     def step(self, seconds, passed_turning_point):
-        next_time = utils.pretty_seconds(seconds + 1)
-        row = self.setup.get(next_time)
-        if not row:  # TODO: if roast is not finished, calculate a proper temp
-            return
-
+        row = utils.get_last_setup_for(self.setup, seconds + self.seconds_ahead, self.variable)
         self.roaster.set_mode('recipe')
         self.roaster.set_pid_reference(self.control_type)
         self.roaster.set_setpoint(getattr(row, self.variable))

@@ -71,7 +71,7 @@ total_time = minutos_totais * 60
 show_interval = 15
 wait_interval = 1
 setup_interval = 1
-start_mixer_remaining_degrees = 10
+start_mixer_remaining_degrees = 5
 setup = utils.load_setup(args.setup_filename, interval=setup_interval)
 last_setup_temperature = (args.last_bean_temperature or
                           utils.max_temp(args.setup_filename))

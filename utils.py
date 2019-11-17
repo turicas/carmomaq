@@ -45,3 +45,18 @@ def pretty_seconds(seconds):
 
 def pretty_now():
     return str(datetime.datetime.now()).split('.')[0].replace(' ', 'T')
+
+
+def get_last_setup_for(setup, seconds, variable):
+    found = False
+    while not found:
+        next_time = pretty_seconds(seconds)
+        row = setup.get(next_time)
+        if row:
+            # TODO: if roast is not finished, calculate a proper temp
+            value = getattr(row, variable)
+            if value is not None:
+                found = True
+                break
+        seconds -= 1
+    return row
