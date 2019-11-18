@@ -9,11 +9,12 @@ def load_setup(filename, interval=15):
     setup = {}
     started = False
     for row in data:
+        if not any(row._asdict().values()):
+            continue
         if row.roast_time == 0:
             started = True
         if not started:
             continue
-
         if row.roast_time % interval == 0:
             setup[pretty_seconds(row.roast_time)] = row
 
@@ -26,6 +27,8 @@ def max_temp(filename):
     last_temp = 9999999999
     turning_point = False  # reversed turning point
     for row in reversed(data):
+        if not any(row._asdict().values()):
+            continue
         temp = row.temp_bean
         if not turning_point and temp > last_temp and row.roast_time > 30:
             turning_point = True

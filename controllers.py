@@ -1,3 +1,5 @@
+import time
+
 import utils
 
 
@@ -60,9 +62,17 @@ class TemperatureController(Controller):
         self.log('feito!')
 
         initial = self.setup['00:00:00']
+        self.log(f"Alterando posição inicial do servo para: {initial.servo_position}...", end=False)
         temp = getattr(initial, self.variable)
+        current_servo_position = self.roaster.data["servo_position"]
         self.roaster.set_setpoint(temp)
         self.roaster.set_servo_position(initial.servo_position)
+        # For each percent the servo needs to turn, it waits 1 second
+        # TODO: use more accurate measure if the servo is in the right position
+        time.sleep(
+            abs(initial.servo_position - current_servo_position)
+        )
+        self.log("feito (espero)!")
 
     def after_start(self):
         self.log('Alterando modo de torra para receita... ', end=False)
@@ -87,7 +97,7 @@ class FireTemperatureController(TemperatureController):
 
     control_type = 'fire'
     variable = 'temp_fire'
-    seconds_ahead = 20
+    seconds_ahead = 30
 
     def step(self, seconds, passed_turning_point):
         row = utils.get_last_setup_for(self.setup, seconds + self.seconds_ahead, self.variable)

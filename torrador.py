@@ -53,7 +53,7 @@ def print_stats(data, setup, turning_point_temp):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('numero_torra', type=int)
+parser.add_argument('numero_torra', type=str)
 parser.add_argument('minutos_totais', type=float)
 parser.add_argument('setup_filename')
 parser.add_argument('--auto', action='store_true')
@@ -306,4 +306,5 @@ print(
 roaster.close()
 table = rows.import_from_csv(csv_filename)
 rows.export_to_xls(table, xls_filename)
+os.unlink(csv_filename)
 print(' feito!')
