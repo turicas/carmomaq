@@ -30,10 +30,9 @@ if auto.lower() not in ("y", "n"):
     print("ERRO: você deve digitar Y ou N.")
     input()
     exit(3)
+extra_options = " --redis"
 if auto:
-    extra_options = "--auto"
-else:
-    extra_options = ""
+    extra_options += " --auto"
 command = (
     f"python3 torrador.py {extra_options} {roast_number} {max_time} {setup_filename}"
 )
@@ -42,5 +41,6 @@ print("Ok, rodando programa torrador:")
 print(f"    {command}")
 print("Para sair aperte Ctrl+c (NÃO FECHE ESSA JANELA)")
 print()
+subprocess.Popen(shlex.split("docker-compose -f docker-compose.yml -p carmomaq up -d"), cwd=base_path)
 subprocess.Popen(shlex.split(command), cwd=base_path)
 input()
