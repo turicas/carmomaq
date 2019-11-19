@@ -27,14 +27,14 @@ import utils
 
 
 def print_stats(data, setup, turning_point_temp):
-    seconds = data['roast_time']
+    seconds = data["roast_time"]
     pretty_time = utils.pretty_seconds(seconds)
-    ar = data['temp_air']
-    data_hora = data['datetime']
-    forno = data['temp_fire']
-    grao = data['temp_bean']
-    set_point = data['temp_goal']
-    posicao_servo = data['servo_position']
+    ar = data["temp_air"]
+    data_hora = data["datetime"]
+    forno = data["temp_fire"]
+    grao = data["temp_bean"]
+    set_point = data["temp_goal"]
+    posicao_servo = data["servo_position"]
     setup_data = setup.get(pretty_time)
     if not setup_data:
         setup_data = setup.get(utils.pretty_seconds(seconds - 1))
@@ -44,24 +44,28 @@ def print_stats(data, setup, turning_point_temp):
     ar_setup = setup_data.temp_air if setup_data else 0
     posicao_setup = setup_data.servo_position if setup_data else 0
     forno_setup = setup_data.temp_fire if setup_data else 0
-    print(f'{data_hora} {pretty_time} '
-          f'GRAO: {grao:3d} (s: {temperatura_setup:3d}) '
-          f'AR: {ar:3d} (s: {ar_setup:3d}) '
-          f'FORNO: {forno:04d} (s: {forno_setup:04d}) '
-          f'TP: {turning_point_temp:04d} '
-          f'SV: {posicao_servo:5.2f} (s: {posicao_setup:5.2f})')
+    print(
+        f"{data_hora} {pretty_time} "
+        f"GRAO: {grao:3d} (s: {temperatura_setup:3d}) "
+        f"AR: {ar:3d} (s: {ar_setup:3d}) "
+        f"FORNO: {forno:04d} (s: {forno_setup:04d}) "
+        f"TP: {turning_point_temp:04d} "
+        f"SV: {posicao_servo:5.2f} (s: {posicao_setup:5.2f})"
+    )
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('numero_torra', type=str)
-parser.add_argument('minutos_totais', type=float)
-parser.add_argument('setup_filename')
-parser.add_argument('--auto', action='store_true')
-parser.add_argument('--fake', action='store_true')
-parser.add_argument('--control_type',
-                    choices=['bean-temperature', 'fire-temperature',
-                             'servo-position'], default='fire-temperature')
-parser.add_argument('--last_bean_temperature', type=int)
+parser.add_argument("numero_torra", type=str)
+parser.add_argument("minutos_totais", type=float)
+parser.add_argument("setup_filename")
+parser.add_argument("--auto", action="store_true")
+parser.add_argument("--fake", action="store_true")
+parser.add_argument(
+    "--control_type",
+    choices=["bean-temperature", "fire-temperature", "servo-position"],
+    default="fire-temperature",
+)
+parser.add_argument("--last_bean_temperature", type=int)
 args = parser.parse_args()
 
 control_type = args.control_type
@@ -73,111 +77,111 @@ wait_interval = 1
 setup_interval = 1
 start_mixer_remaining_degrees = 5
 setup = utils.load_setup(args.setup_filename, interval=setup_interval)
-last_setup_temperature = (args.last_bean_temperature or
-                          utils.max_temp(args.setup_filename))
+last_setup_temperature = args.last_bean_temperature or utils.max_temp(
+    args.setup_filename
+)
 last_setup_time = max(setup.keys())
-hour, minute, second = [int(part) for part in last_setup_time.split(':')]
+hour, minute, second = [int(part) for part in last_setup_time.split(":")]
 last_setup_seconds = hour * 3600 + minute * 60 + second
 
 
-print('Conectando ao controlador... ', end='', flush=True)
+print("Conectando ao controlador... ", end="", flush=True)
 if not args.fake:
     roaster = machines.CarmoMaq10(settings.ROASTER_HOST, settings.ROASTER_PORT)
 else:
     roaster = machines.FakeMachine()
 roaster.connect()
-print('feito!')
+print("feito!")
 
 
 if not roaster.cylinder:
-    print('Ligando cilindro... ', end='', flush=True)
+    print("Ligando cilindro... ", end="", flush=True)
     roaster.set_cylinder(True)
-    print('feito!')
+    print("feito!")
 else:
-    print('Cilindro ligado.')
+    print("Cilindro ligado.")
 
 
 if not roaster.burner:
-    print('Acendendo chama... ', end='', flush=True)
+    print("Acendendo chama... ", end="", flush=True)
     roaster.set_burner(True)
-    print('feito!')
+    print("feito!")
 else:
-    print('Chama acesa.')
+    print("Chama acesa.")
 
 
 if roaster.bean_entrance:
-    print('Fechando moega... ', end='', flush=True)
+    print("Fechando moega... ", end="", flush=True)
     roaster.close_bean_entrance()
     time.sleep(roaster.TIME_BEAN_ENTRANCE_PISTON)
-    print('feito!')
+    print("feito!")
 
 if roaster.bean_exit:
-    print('Fechando cilindro... ', end='', flush=True)
+    print("Fechando cilindro... ", end="", flush=True)
     roaster.close_bean_exit()
     time.sleep(roaster.TIME_BEAN_EXIT_PISTON)
-    print('feito!')
+    print("feito!")
 
 if roaster.cooler_exit:
-    print('Fechando saída do mexedor... ', end='', flush=True)
+    print("Fechando saída do mexedor... ", end="", flush=True)
     roaster.close_cooler_exit()
     time.sleep(roaster.TIME_COOLER_EXIT_PISTON)
-    print('feito!')
+    print("feito!")
 
 if not args.auto:
-    print('Modo manual.')
+    print("Modo manual.")
     print(
-        'Alterando modo de torra para manual... ',
-        end='',
-        flush=True,
+        "Alterando modo de torra para manual... ", end="", flush=True,
     )
-    roaster.set_mode('manual')
-    print('feito!')
-
+    roaster.set_mode("manual")
+    print("feito!")
 
     # TODO: what if the hopper is not automated?
-    print('Abra a moega pela interface.')
+    print("Abra a moega pela interface.")
     if args.fake:
         roaster.close_bean_entrance()
     while not roaster.bean_entrance:
         time.sleep(0.05)
 
-    print('Iniciando torra... ', end='', flush=True)
+    print("Iniciando torra... ", end="", flush=True)
     roaster.stop_roast()
     roaster.start_roast()
-    print('feito!')
+    print("feito!")
 
 else:
-    print('MODO AUTOMÁTICO! Deixa comigo :)')
+    print("MODO AUTOMÁTICO! Deixa comigo :)")
     controller = controllers.get_controller(control_type)(roaster, setup)
     controller.before_start()
 
-    initial = setup['00:00:00']
-    print(f'Initial temperatures from setup - BEAN: {initial.temp_bean}, '
-          f'AIR:  {initial.temp_air}, '
-          f'FIRE: {initial.temp_fire}')
+    initial = setup["00:00:00"]
+    print(
+        f"Initial temperatures from setup - BEAN: {initial.temp_bean}, "
+        f"AIR:  {initial.temp_air}, "
+        f"FIRE: {initial.temp_fire}"
+    )
 
-    roaster.set_mode('manual')
+    roaster.set_mode("manual")
     drop_temp = initial.temp_fire
-    if roaster.data['temp_fire'] <= drop_temp:
-        direction = 'up'
+    if roaster.data["temp_fire"] <= drop_temp:
+        direction = "up"
     else:
-        direction = 'down'
+        direction = "down"
     while True:
         data = roaster.data
-        current_temp = data['temp_fire']
-        servo_position = data['servo_position']
+        current_temp = data["temp_fire"]
+        servo_position = data["servo_position"]
         if current_temp == drop_temp:
             break
 
         elif current_temp < drop_temp:
-            if direction == 'down':
+            if direction == "down":
                 break
 
             if roaster.bean_exit:
                 try:
                     roaster.close_bean_exit()
                 except:
-                    print('ERRO: feche o cilindro')
+                    print("ERRO: feche o cilindro")
             servo_position += 3
             if servo_position < 10:
                 servo_position = 10
@@ -187,7 +191,7 @@ else:
             roaster.set_servo_position(servo_position)
 
         elif current_temp >= drop_temp:
-            if direction == 'up':
+            if direction == "up":
                 break
 
             roaster.set_burner(False)
@@ -202,16 +206,16 @@ else:
 
     controller.after_start()
 
-    print('Iniciando torra... ', end='', flush=True)
+    print("Iniciando torra... ", end="", flush=True)
     roaster.restart_roast()
     roaster.set_alarm(last_setup_temperature)
-    print('feito!')
-    print(f'Temperatura final: {last_setup_temperature}')
+    print("feito!")
+    print(f"Temperatura final: {last_setup_temperature}")
 
 
-csv_filename = str(settings.DATA_PATH / f'torra-{numero_torra}.csv')
-xls_filename = str(settings.DATA_PATH / f'torra-{numero_torra}.xls')
-with open(csv_filename, mode='w', encoding='utf8') as fobj:
+csv_filename = str(settings.DATA_PATH / f"torra-{numero_torra}.csv")
+xls_filename = str(settings.DATA_PATH / f"torra-{numero_torra}.xls")
+with open(csv_filename, mode="w", encoding="utf8") as fobj:
     writer = None
     finished = False
     passed_turning_point = False
@@ -225,34 +229,38 @@ with open(csv_filename, mode='w', encoding='utf8') as fobj:
             start_loop = time.time()
 
             data = roaster.data
-            data['datetime'] = utils.pretty_now()
+            data["datetime"] = utils.pretty_now()
             if writer is None:
-                writer = csv.DictWriter(
-                    fobj,
-                    fieldnames=list(data.keys()),
-                )
+                writer = csv.DictWriter(fobj, fieldnames=list(data.keys()),)
                 writer.writeheader()
             writer.writerow(data)
 
-            seconds = int(data['roast_time'])
+            seconds = int(data["roast_time"])
 
             if roaster.automatic and seconds > 30 and roaster.bean_entrance:
                 try:
                     roaster.close_bean_entrance()
                 except:
-                    print('Error trying to close bean entrance.')
+                    print("Error trying to close bean entrance.")
 
-            current_bean_temperature = int(data['temp_bean'])
-            if not passed_turning_point and seconds > 10 and \
-                    last_bean_temperature < current_bean_temperature:
+            current_bean_temperature = int(data["temp_bean"])
+            if (
+                not passed_turning_point
+                and seconds > 10
+                and last_bean_temperature < current_bean_temperature
+            ):
                 passed_turning_point = True
                 turning_point_temp = current_bean_temperature
 
             if args.auto:
-                controller.step(seconds, passed_turning_point)  # Set next temperature goal
+                controller.step(
+                    seconds, passed_turning_point
+                )  # Set next temperature goal
 
                 if passed_turning_point:
-                    delta_temperature = last_setup_temperature - current_bean_temperature
+                    delta_temperature = (
+                        last_setup_temperature - current_bean_temperature
+                    )
 
                     # Automatically start mixer when finishing roast
                     if delta_temperature <= start_mixer_remaining_degrees:
@@ -265,7 +273,7 @@ with open(csv_filename, mode='w', encoding='utf8') as fobj:
                             try:
                                 roaster.close_cooler_exit()
                             except:
-                                print('FECHE A SAÍDA DO MEXEDOR!')
+                                print("FECHE A SAÍDA DO MEXEDOR!")
 
                     # Automatically open bean exit if final temperature is met
                     if last_setup_temperature <= current_bean_temperature:
@@ -276,7 +284,7 @@ with open(csv_filename, mode='w', encoding='utf8') as fobj:
                                 roaster.open_bean_exit()
                                 opened_bean_exit = seconds
                             except:
-                                print('ABRA O TAMBOR!')
+                                print("ABRA O TAMBOR!")
 
                     # Automatically close bean exit after openning it
                     if seconds - opened_bean_exit >= 30:
@@ -284,7 +292,7 @@ with open(csv_filename, mode='w', encoding='utf8') as fobj:
                             try:
                                 roaster.close_bean_exit()
                             except:
-                                print('FECHE O TAMBOR!')
+                                print("FECHE O TAMBOR!")
 
             last_bean_temperature = current_bean_temperature
 
@@ -299,12 +307,12 @@ with open(csv_filename, mode='w', encoding='utf8') as fobj:
         pass
 
 print(
-    'Finalizada a gravação. Fechando conexão e convertendo arquivo... ',
-    end='',
+    "Finalizada a gravação. Fechando conexão e convertendo arquivo... ",
+    end="",
     flush=True,
 )
 roaster.close()
 table = rows.import_from_csv(csv_filename)
 rows.export_to_xls(table, xls_filename)
 os.unlink(csv_filename)
-print(' feito!')
+print(" feito!")

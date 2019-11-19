@@ -35,7 +35,7 @@ class CarmoMaq10:
     ADDR_PID_REFERENCE = 55556
     automatic = True
 
-    def __init__(self, host='192.168.0.10', port=502):
+    def __init__(self, host="192.168.0.10", port=502):
         self.host = host
         self.port = port
 
@@ -48,22 +48,14 @@ class CarmoMaq10:
     def _read_bools(self, start_address, quantity):
         """Read consecutive boolean values"""
 
-        result = self._master.execute(
-            1,
-            cst.READ_COILS,
-            start_address,
-            quantity,
-        )
+        result = self._master.execute(1, cst.READ_COILS, start_address, quantity,)
         return [True if value == 1 else False for value in result]
 
     def _read_words(self, start_address, quantity):
         """Read consecutive word values"""
 
         return self._master.execute(
-            1,
-            cst.READ_HOLDING_REGISTERS,
-            start_address,
-            quantity,
+            1, cst.READ_HOLDING_REGISTERS, start_address, quantity,
         )
 
     def _write_bool(self, coil_address, value):
@@ -71,30 +63,21 @@ class CarmoMaq10:
 
         assert value in (0, 1)
         self._master.execute(
-            1,
-            cst.WRITE_SINGLE_COIL,
-            coil_address,
-            output_value=value,
+            1, cst.WRITE_SINGLE_COIL, coil_address, output_value=value,
         )
 
     def _write_word(self, register_address, value):
         """Write a single word value to a specific address"""
 
         self._master.execute(
-            1,
-            cst.WRITE_SINGLE_REGISTER,
-            register_address,
-            output_value=value
+            1, cst.WRITE_SINGLE_REGISTER, register_address, output_value=value
         )
 
     def _write_words(self, start_address, values):
         """Write consecutive word values to consecutive addresses"""
 
         self._master.execute(
-            1,
-            cst.WRITE_MULTIPLE_REGISTERS,
-            start_address,
-            output_value=values,
+            1, cst.WRITE_MULTIPLE_REGISTERS, start_address, output_value=values,
         )
 
     def _get_status(self, address):
@@ -166,19 +149,19 @@ class CarmoMaq10:
         value = self._read_bools(self.ADDR_PID_REFERENCE, 1)[0]
 
         if value is False:
-            return 'bean'
+            return "bean"
         elif value is True:
-            return 'fire'
+            return "fire"
 
     def set_pid_reference(self, reference):
         # TODO: test
         # TODO: add property to get current value
-        if reference not in ('bean', 'fire'):
+        if reference not in ("bean", "fire"):
             raise ValueError("'reference' must be 'bean' or 'fire'")
 
-        if reference == 'bean':
+        if reference == "bean":
             self._write_bool(self.ADDR_PID_REFERENCE, False)
-        elif reference == 'fire':
+        elif reference == "fire":
             self._write_bool(self.ADDR_PID_REFERENCE, True)
 
     @property
@@ -196,20 +179,20 @@ class CarmoMaq10:
     @property
     def mode(self):
         value = self._read_bools(self.ADDR_OPERATIONAL_MODE, 1)[0]
-        return 'recipe' if value == False else 'manual'
+        return "recipe" if value == False else "manual"
 
     def set_mode(self, mode):
-        if mode not in ('manual', 'recipe'):
+        if mode not in ("manual", "recipe"):
             raise ValueError("'mode' must be 'recipe' or 'manual'")
 
-        if mode == 'recipe':
+        if mode == "recipe":
             self._write_bool(self.ADDR_OPERATIONAL_MODE, 0)  # recipe
         else:
             self._write_bool(self.ADDR_OPERATIONAL_MODE, 1)  # manual
 
     def start_roast(self):
         data = self.data
-        if data['roasting']:
+        if data["roasting"]:
             return
 
         self._write_bool(self.ADDR_START_ROAST, 0)
@@ -217,7 +200,7 @@ class CarmoMaq10:
 
     def stop_roast(self):
         data = self.data
-        if not data['roasting']:
+        if not data["roasting"]:
             return
 
         self._write_bool(self.ADDR_START_ROAST, 0)
@@ -275,35 +258,41 @@ class CarmoMaq10:
 
         # TODO: refactor
         header_1 = (
-                'temp_bean', 'temp_air', 'temp_fire', 'temp_goal',
-                '_', '_',
-                'roast_time', 'roast_minutes', 'roast_seconds',
-                '_',
-                'temp_cooler',
-                'servo_position',
+            "temp_bean",
+            "temp_air",
+            "temp_fire",
+            "temp_goal",
+            "_",
+            "_",
+            "roast_time",
+            "roast_minutes",
+            "roast_seconds",
+            "_",
+            "temp_cooler",
+            "servo_position",
         )
         response_1 = self._read_words(8000, 12)
         header_2 = (
-            '_',
-            'powered',
-            '_',
-            '_',
-            '_',
-            'burner',
-            '_',
-            '_',
-            '_',
-            'roasting',
+            "_",
+            "powered",
+            "_",
+            "_",
+            "_",
+            "burner",
+            "_",
+            "_",
+            "_",
+            "roasting",
         )
         response_2 = self._read_bools(49990, 10)
         data = dict(zip(header_1, response_1))
         data.update(dict(zip(header_2, response_2)))
-        del data['roast_minutes']
-        del data['roast_seconds']
-        del data['_']
-        data['roast_time'] = int(data['roast_time'])
-        data['servo_position'] = int(data['servo_position'] / 10.0)
-        data['roasting'] = True if data['roasting'] == 1 else False
+        del data["roast_minutes"]
+        del data["roast_seconds"]
+        del data["_"]
+        data["roast_time"] = int(data["roast_time"])
+        data["servo_position"] = int(data["servo_position"] / 10.0)
+        data["roasting"] = True if data["roasting"] == 1 else False
         return data
 
     def close(self):
@@ -330,7 +319,7 @@ class FakeMachine:
         self._d_value = 0.1
         self._i_value = 0.1
         self._mixer = False
-        self._mode = 'manual'
+        self._mode = "manual"
         self._p_value = 0.1
         self._pid_reference = 120
         self._running = False
@@ -460,16 +449,16 @@ class FakeMachine:
         temp_air = 314 + (multiplier * 0.1 * duration)
         temp_bean = 143 + (multiplier * 0.2 * duration)
         return {
-            'temp_bean': int(temp_bean),
-            'temp_air': int(temp_air),
-            'temp_fire': int(temp_fire),
-            'temp_goal': self._setpoint,
-            'roast_time': int(duration),
-            'temp_cooler': 50,
-            'servo_position': int(self._servo_position),
-            'powered': True,
-            'burner': self._burner,
-            'roasting': self._running,
+            "temp_bean": int(temp_bean),
+            "temp_air": int(temp_air),
+            "temp_fire": int(temp_fire),
+            "temp_goal": self._setpoint,
+            "roast_time": int(duration),
+            "temp_cooler": 50,
+            "servo_position": int(self._servo_position),
+            "powered": True,
+            "burner": self._burner,
+            "roasting": self._running,
         }
 
     def close(self):

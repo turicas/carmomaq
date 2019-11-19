@@ -4,7 +4,7 @@ import rows.utils
 
 
 def load_setup(filename, interval=15):
-    data = rows.utils.import_from_uri(filename, default_encoding='utf8')
+    data = rows.utils.import_from_uri(filename, default_encoding="utf8")
 
     setup = {}
     started = False
@@ -22,7 +22,7 @@ def load_setup(filename, interval=15):
 
 
 def max_temp(filename):
-    data = rows.utils.import_from_uri(filename, default_encoding='utf8')
+    data = rows.utils.import_from_uri(filename, default_encoding="utf8")
 
     last_temp = 9999999999
     turning_point = False  # reversed turning point
@@ -41,13 +41,13 @@ def max_temp(filename):
 def pretty_seconds(seconds):
     pretty = str(datetime.timedelta(seconds=seconds))
     if len(pretty) == 7:  # missing a '0' to be fixed length
-        pretty = '0' + pretty
+        pretty = "0" + pretty
 
     return pretty
 
 
 def pretty_now():
-    return str(datetime.datetime.now()).split('.')[0].replace(' ', 'T')
+    return str(datetime.datetime.now()).split(".")[0].replace(" ", "T")
 
 
 def get_last_setup_for(setup, seconds, variable):
