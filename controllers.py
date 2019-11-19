@@ -4,16 +4,13 @@ import utils
 
 
 class Controller:
-    def __init__(self, roaster, setup):
+    def __init__(self, roaster, setup, logger):
         self.roaster = roaster
         self.setup = setup
+        self.logger = logger
 
-    def log(self, message, end=True):
-        message = "  " + message
-        if end:
-            print(message)
-        else:
-            print(message, end="", flush=True)
+    def log(self, message):
+        self.logger.log(message)
 
     def before_start(self):
         raise NotImplementedError()
@@ -33,9 +30,9 @@ class ServoPositionController(Controller):
         self.roaster.set_servo_position(getattr(initial, self.variable))
 
     def after_start(self):
-        self.log("Alterando modo de torra para manual (não receita)... ", end=False)
+        self.log("Alterando modo de torra para manual (não receita)...")
         self.roaster.set_mode("manual")
-        self.log("feito!")
+        self.log("  Torrador no modo manual!")
 
     def step(self, seconds, passed_turning_point):
         row = utils.get_last_setup_for(
@@ -57,15 +54,12 @@ class TemperatureController(Controller):
         elif self.control_type not in ("bean", "fire"):
             raise ValueError("Wrong self.control_type")
 
-        self.log(f"Alterando PID para seguir: {self.variable}... ", end=False)
+        self.log(f"Alterando PID para seguir: {self.variable}...")
         self.roaster.set_pid_reference(self.control_type)
-        self.log("feito!")
+        self.log(f"  PID seguindo {self.variable}!")
 
         initial = self.setup["00:00:00"]
-        self.log(
-            f"Alterando posição inicial do servo para: {initial.servo_position}...",
-            end=False,
-        )
+        self.log(f"Alterando posição inicial do servo para: {initial.servo_position}...")
         temp = getattr(initial, self.variable)
         current_servo_position = self.roaster.data["servo_position"]
         self.roaster.set_setpoint(temp)
@@ -73,12 +67,12 @@ class TemperatureController(Controller):
         # For each percent the servo needs to turn, it waits 1 second
         # TODO: use more accurate measure if the servo is in the right position
         time.sleep(abs(initial.servo_position - current_servo_position))
-        self.log("feito (espero)!")
+        self.log("  Posição do servo alterada!")
 
     def after_start(self):
-        self.log("Alterando modo de torra para receita... ", end=False)
+        self.log("Alterando modo de torra para receita... ")
         self.roaster.set_mode("recipe")
-        self.log("feito!")
+        self.log("  Torra no modo receita!")
 
 
 class BeanTemperatureController(TemperatureController):

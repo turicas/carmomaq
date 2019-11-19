@@ -1,4 +1,6 @@
+http://github.com/turicas/rows/archive/develop.zip#egg=rows
 modbus-tk
-rows
+redis
+tqdm
 xlrd
 xlwt
