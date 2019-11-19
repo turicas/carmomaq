@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Torrador Carmomaq
+Exec=/usr/bin/gnome-terminal -- /home/curto/carmomaq/interface_texto.py
+Type=Application
+Categories=Utility;
