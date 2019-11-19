@@ -1,0 +1,19 @@
+body, html {
+  font-family: sans-serif;
+}
+#log {
+  max-height: 300px;
+  overflow: auto;
+}
+.fire {
+  fill: #f2ea00;
+  fill-opacity:0;
+  stroke-width:2px;
+  stroke: #b3ab00;
+}
+.bean {
+  fill: #00a0f2;
+  fill-opacity:0;
+  stroke-width:2px;
+  stroke: #050092;
+}

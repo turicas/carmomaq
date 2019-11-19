@@ -1,3 +1,4 @@
+flask
 http://github.com/turicas/rows/archive/develop.zip#egg=rows
 modbus-tk
 redis
