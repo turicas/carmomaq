@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+    pubsub:
+        image: redis
+        container_name: carmomaq_redis
+        ports:
+            - "6379:6379"
